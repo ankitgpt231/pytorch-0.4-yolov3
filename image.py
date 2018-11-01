@@ -253,7 +253,7 @@ def correct_yolo_boxes(boxes, im_w, im_h, net_w, net_h):
     return
 
 def load_data_detection(imgpath, shape, crop, jitter, hue, saturation, exposure):
-    labpath = imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+    labpath = imgpath.replace('multiple_markers_images', 'annotations_multiple_markers').replace('png', 'txt').replace('video3', 'dataset3_txt')
 
     ## data augmentation
     img = Image.open(imgpath).convert('RGB')

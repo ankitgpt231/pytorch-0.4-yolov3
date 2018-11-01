@@ -368,6 +368,6 @@ if __name__ == '__main__':
     parser.add_argument('--localmax', '-l',
         action="store_true", default=False, help='save net weights for local maximum fscore')
 
-    FLAGS, _ = parser.parse_known_args()
+    FLAGS, _ = parser.parse_known_args(['-d', 'cfg/tools.data', '-c', 'cfg/yolov3-tiny.cfg'])
     main()
 
