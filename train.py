@@ -133,8 +133,8 @@ def main():
         else:
             params += [{'params': [value], 'weight_decay': decay*batch_size}]
     global optimizer
-    optimizer = optim.SGD(model.parameters(), 
-                        lr=learning_rate/batch_size, momentum=momentum, 
+    optimizer = optim.SGD(model.parameters(),
+                        lr=learning_rate/batch_size, momentum=momentum,
                         dampening=0, weight_decay=decay*batch_size)
 
     if evaluate:
@@ -165,7 +165,7 @@ def main():
         except KeyboardInterrupt:
             print('='*80)
             print('Exiting from training by interrupt')
-                
+
 def adjust_learning_rate(optimizer, batch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     lr = learning_rate
@@ -200,7 +200,7 @@ def train(epoch):
                         shuffle=True,
                         transform=transforms.Compose([
                             transforms.ToTensor(),
-                        ]), 
+                        ]),
                         train=True,
                         seen=cur_model.seen,
                         batch_size=batch_size,
@@ -249,7 +249,7 @@ def train(epoch):
 
         t8 = time.time()
         optimizer.step()
-        
+
         t9 = time.time()
         if False and batch_idx > 1:
             avg_time[0] = avg_time[0] + (t2-t1)
@@ -281,19 +281,19 @@ def train(epoch):
     nsamples = len(train_loader.dataset)
     logging('[%03d] training with %f samples/s' % (epoch, nsamples/(t1-t0)))
     return nsamples
-    
+
 def savemodel(epoch, nsamples, curmax=False):
     cur_model = curmodel()
     if curmax:
-        logging('save local maximum weights to %s/localmax.weights' % (backupdir))
+        logging('save local maximum weights to %s/yolov2_localmax.weights' % (backupdir))
     else:
-        logging('save weights to %s/%06d.weights' % (backupdir, epoch))
+        logging('save weights to %s/yolov2_%06d.weights' % (backupdir, epoch))
     cur_model.seen = epoch * nsamples
-    if curmax: 
-        cur_model.save_weights('%s/localmax.weights' % (backupdir))
+    if curmax:
+        cur_model.save_weights('%s/yolov2_localmax.weights' % (backupdir))
     else:
-        cur_model.save_weights('%s/%06d.weights' % (backupdir, epoch))
-        old_wgts = '%s/%06d.weights' % (backupdir, epoch-keep_backup*save_interval)
+        cur_model.save_weights('%s/yolov2_%06d.weights' % (backupdir, epoch))
+        old_wgts = '%s/yolov2_%06d.weights' % (backupdir, epoch-keep_backup*save_interval)
         try: #  it avoids the unnecessary call to os.path.exists()
             os.remove(old_wgts)
         except OSError:
@@ -344,7 +344,7 @@ def test(epoch):
                     # pred_boxes and gt_boxes are transposed for torch.max
                     if best_iou > iou_thresh and pred_boxes[6][best_j] == gt_boxes[6][0]:
                         correct += 1
-                        
+
     precision = 1.0*correct/(proposals+eps)
     recall = 1.0*correct/(total+eps)
     fscore = 2.0*precision*recall/(precision+recall+eps)
@@ -368,6 +368,5 @@ if __name__ == '__main__':
     parser.add_argument('--localmax', '-l',
         action="store_true", default=False, help='save net weights for local maximum fscore')
 
-    FLAGS, _ = parser.parse_known_args()
+    FLAGS, _ = parser.parse_known_args(['-d', 'cfg/tools.data', '-c', 'cfg/yolov2-tiny.cfg', '-l', 'True'])
     main()
-

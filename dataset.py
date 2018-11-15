@@ -62,8 +62,8 @@ class listDataset(Dataset):
             img = Image.open(imgpath).convert('RGB')
             if self.shape:
                 img, org_w, org_h = letterbox_image(img, self.shape[0], self.shape[1]), img.width, img.height
-    
-            labpath = imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+
+            labpath = imgpath.replace('train_image_folder', 'train_annot_txt_folder').replace('.jpg', '.txt').replace('.png','.txt')
             label = torch.zeros(50*5)
             #if os.path.getsize(labpath):
             #tmp = torch.from_numpy(np.loadtxt(labpath))

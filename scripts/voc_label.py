@@ -3,10 +3,10 @@ import pickle
 import os
 from os import listdir, getcwd
 from os.path import join
+import glob
 
-sets=[('2012', 'train'), ('2012', 'val'), ('2007', 'train'), ('2007', 'val'), ('2007', 'test')]
 
-classes = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
+classes = ["surgicaltool"]
 
 
 def convert(size, box):
@@ -22,11 +22,12 @@ def convert(size, box):
     h = h*dh
     return (x,y,w,h)
 
-def convert_annotation(year, image_id):
-    in_file = open('VOCdevkit/VOC%s/Annotations/%s.xml'%(year, image_id))
-    out_file = open('VOCdevkit/VOC%s/labels/%s.txt'%(year, image_id), 'w')
+def convert_annotation(annotation, text_path):
+    in_file = open(annotation)
     tree=ET.parse(in_file)
     root = tree.getroot()
+    file_name, _ = os.path.splitext(root.find('filename').text)
+    out_file = open(txt_path+file_name+'.txt', 'w')
     size = root.find('size')
     w = int(size.find('width').text)
     h = int(size.find('height').text)
@@ -42,15 +43,23 @@ def convert_annotation(year, image_id):
         bb = convert((w,h), b)
         out_file.write(str(cls_id) + " " + " ".join([str(a) for a in bb]) + '\n')
 
-wd = getcwd()
+xml_path = '/home/ankit.gupta/tool_detect_yolo/dataset/train_annot_folder/'
+txt_path = '/home/ankit.gupta/yolo_pytorch/pytorch-0.4-yolov3/data/annotations_txt/'
+dataset = '/home/ankit.gupta/yolo_pytorch/pytorch-0.4-yolov3/data/'
+split_ratio = 0.2
 
-for year, image_set in sets:
-    if not os.path.exists('VOCdevkit/VOC%s/labels/'%(year)):
-        os.makedirs('VOCdevkit/VOC%s/labels/'%(year))
-    image_ids = open('VOCdevkit/VOC%s/ImageSets/Main/%s.txt'%(year, image_set)).read().strip().split()
-    list_file = open('%s_%s.txt'%(year, image_set), 'w')
-    for image_id in image_ids:
-        list_file.write('%s/VOCdevkit/VOC%s/JPEGImages/%s.jpg\n'%(wd, year, image_id))
-        convert_annotation(year, image_id)
-    list_file.close()
-
+if not os.path.exists(txt_path):
+    os.mkdir(txt_path)
+annotations_xml = glob.glob(xml_path+'*.xml')
+list_file_train = open(dataset + 'train.txt', 'w')
+list_file_valid = open(dataset + 'valid.txt', 'w')
+sample_factor = int(1/split_ratio)
+for i in range(len(annotations_xml)):
+    tree=ET.parse(annotations_xml[i])
+    root = tree.getroot()
+    image_id = root.find('path').text
+    if (i+1)%sample_factor == 0:
+        list_file_valid.write(image_id+'\n')
+    else:
+        list_file_train.write(image_id+'\n')
+    convert_annotation(annotations_xml[i], txt_path)
